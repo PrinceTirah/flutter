@@ -1182,6 +1182,9 @@ class FlutterPlugin implements Plugin<Project> {
                         }
                     }
                 }
+                // Copy the native assets created by build.dart and placed here by flutter assemble.
+                def nativeAssetsDir = "${project.buildDir}/../native_assets/android/jniLibs/lib/"
+                project.android.sourceSets.main.jniLibs.srcDir nativeAssetsDir
             }
             configurePlugins()
             detectLowCompileSdkVersionOrNdkVersion()
@@ -1397,6 +1400,7 @@ abstract class BaseFlutterTask extends DefaultTask {
             if (extraFrontEndOptions != null) {
                 args "--ExtraFrontEndOptions=${extraFrontEndOptions}"
             }
+            args "-dAndroidArchs=${targetPlatformValues.join(' ')}"
             args ruleNames
         }
     }
