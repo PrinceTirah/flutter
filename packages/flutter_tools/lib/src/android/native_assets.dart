@@ -189,12 +189,15 @@ const Map<Architecture, String> _architectureStringsCMakeAndroid =
 Future<CCompilerConfig> cCompilerConfigAndroid() async {
   final AndroidSdk? androidSdk = AndroidSdk.locateAndroidSdk();
   return CCompilerConfig(
-    cc: androidSdk?.getNdkClangPath()?.toFileUri(),
-    ar: androidSdk?.getNdkArPath()?.toFileUri(),
-    ld: androidSdk?.getNdkLdPath()?.toFileUri(),
+    cc: _toOptionalFileUri(androidSdk?.getNdkClangPath()),
+    ar: _toOptionalFileUri(androidSdk?.getNdkArPath()),
+    ld: _toOptionalFileUri(androidSdk?.getNdkLdPath()),
   );
 }
 
-extension on String {
-  Uri toFileUri() => Uri.file(this);
+Uri? _toOptionalFileUri(String? string) {
+  if (string == null) {
+    return null;
+  }
+  return Uri.file(string);
 }
