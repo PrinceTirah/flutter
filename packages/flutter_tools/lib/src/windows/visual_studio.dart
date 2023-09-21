@@ -376,10 +376,18 @@ class VisualStudio {
     String? msvcVersion;
     if (installationPath != null) {
       final Directory installationDir = _fileSystem.directory(installationPath);
-      final Directory msvcDir =
-          installationDir.childDirectory('VC').childDirectory('Tools').childDirectory('MSVC');
+      final Directory msvcDir = installationDir
+          .childDirectory('VC')
+          .childDirectory('Tools')
+          .childDirectory('MSVC');
       if (msvcDir.existsSync()) {
-        msvcVersion = msvcDir.listSync().whereType<Directory>().last.uri.pathSegments.where((String e) => e.isNotEmpty).last;
+        final Iterable<Directory> msvcVersionDirs = msvcDir.listSync().whereType<Directory>();
+        if (msvcVersionDirs.isEmpty) {
+          return null;
+        }
+        msvcVersion = msvcVersionDirs.last.uri.pathSegments
+            .where((String e) => e.isNotEmpty)
+            .last;
       }
     }
     return msvcVersion;

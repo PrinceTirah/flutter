@@ -27,7 +27,7 @@ Future<Uri?> dryRunNativeAssetsIOS({
     return null;
   }
 
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, OS.iOS);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, OS.iOS);
   final Iterable<Asset> assetTargetLocations = await dryRunNativeAssetsIOSInternal(
     fileSystem,
     projectUri,
@@ -35,7 +35,7 @@ Future<Uri?> dryRunNativeAssetsIOS({
   );
   final Uri nativeAssetsUri = await writeNativeAssetsYaml(
     assetTargetLocations,
-    buildUri_,
+    buildUri,
     fileSystem,
   );
   return nativeAssetsUri;
@@ -81,7 +81,7 @@ Future<List<Uri>> buildNativeAssetsIOS({
   final native_assets_cli.BuildMode buildModeCli = nativeAssetsBuildMode(buildMode);
 
   const OS targetOS = OS.iOS;
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, targetOS);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, targetOS);
   final IOSSdk iosSdk = _getIOSSdk(environmentType);
 
   globals.logger.printTrace('Building native assets for $targets $buildModeCli.');
@@ -104,7 +104,7 @@ Future<List<Uri>> buildNativeAssetsIOS({
   globals.logger.printTrace('Building native assets for $targets done.');
   final Map<AssetPath, List<Asset>> fatAssetTargetLocations = _fatAssetTargetLocations(nativeAssets);
   await copyNativeAssetsMacOSHost(
-    buildUri_,
+    buildUri,
     fatAssetTargetLocations,
     codesignIdentity,
     buildMode,
