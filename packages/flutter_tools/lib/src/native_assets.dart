@@ -12,8 +12,6 @@ import 'package:package_config/package_config_types.dart';
 
 import 'android/native_assets.dart';
 import 'base/common.dart';
-import 'base/config.dart';
-import 'base/context.dart' as context;
 import 'base/file_system.dart';
 import 'base/logger.dart';
 import 'base/platform.dart';
@@ -302,14 +300,7 @@ void ensureNoLinkModeStatic(List<Asset> nativeAssets) {
 /// This should be the same for different archs, debug/release, etc.
 /// It should work for all macOS.
 Uri nativeAssetsBuildUri(Uri projectUri, OS os) {
-  final Config? config = context.context.get<Config>();
-  final String buildDir;
-  if (config != null) {
-    buildDir = build_info.getBuildDirectory();
-  } else {
-    // Expression compilation doesn't have a config in the context in g3.
-    buildDir = 'build';
-  }
+  final String buildDir = build_info.getBuildDirectory();
   return projectUri.resolve('$buildDir/native_assets/$os/');
 }
 
@@ -430,7 +421,7 @@ Future<Uri?> dryRunNativeAssetsMultipeOSes({
     return null;
   }
 
-  final Uri buildUri_ = buildUriMultiple(projectUri);
+  final Uri buildUri = buildUriMultiple(projectUri);
   final Iterable<Asset> nativeAssetPaths = <Asset>[
     if (targetPlatforms.contains(build_info.TargetPlatform.darwin) ||
         (targetPlatforms.contains(build_info.TargetPlatform.tester) && OS.current == OS.macOS))
@@ -474,7 +465,7 @@ Future<Uri?> dryRunNativeAssetsMultipeOSes({
         buildRunner,
       ), 
   ];
-  final Uri nativeAssetsUri = await writeNativeAssetsYaml(nativeAssetPaths, buildUri_, fileSystem);
+  final Uri nativeAssetsUri = await writeNativeAssetsYaml(nativeAssetPaths, buildUri, fileSystem);
   return nativeAssetsUri;
 }
 
@@ -500,7 +491,7 @@ Future<Uri?> dryRunNativeAssetsSingleArchitecture({
     return null;
   }
 
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, os);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, os);
   final Iterable<Asset> nativeAssetPaths = await dryRunNativeAssetsSingleArchitectureInternal(
     fileSystem,
     projectUri,
@@ -510,7 +501,7 @@ Future<Uri?> dryRunNativeAssetsSingleArchitecture({
   );
   final Uri nativeAssetsUri = await writeNativeAssetsYaml(
     nativeAssetPaths,
-    buildUri_,
+    buildUri,
     fileSystem,
   );
   return nativeAssetsUri;
@@ -523,7 +514,7 @@ Future<Iterable<Asset>> dryRunNativeAssetsSingleArchitectureInternal(
   NativeAssetsBuildRunner buildRunner,
   OS targetOS,
 ) async {
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, targetOS);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, targetOS);
 
   globals.logger.printTrace('Dry running native assets for $targetOS.');
   final List<Asset> nativeAssets = (await buildRunner.dryRun(
@@ -535,7 +526,7 @@ Future<Iterable<Asset>> dryRunNativeAssetsSingleArchitectureInternal(
       .assets;
   ensureNoLinkModeStatic(nativeAssets);
   globals.logger.printTrace('Dry running native assets for $targetOS done.');
-  final Uri? absolutePath = flutterTester ? buildUri_ : null;
+  final Uri? absolutePath = flutterTester ? buildUri : null;
   final Map<Asset, Asset> assetTargetLocations = _assetTargetLocationsSingleArchitecture(
     nativeAssets,
     absolutePath,
@@ -562,8 +553,8 @@ Future<(Uri? nativeAssetsYaml, List<Uri> dependencies)> buildNativeAssetsSingleA
 }) async {
   final Target target = targetPlatform != null ? _getNativeTarget(targetPlatform) : Target.current;
   final OS targetOS = target.os;
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, targetOS);
-  final Directory buildDir = fileSystem.directory(buildUri_);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, targetOS);
+  final Directory buildDir = fileSystem.directory(buildUri);
   if (!await buildDir.exists()) {
     // CMake requires the folder to exist to do copying.
     await buildDir.create(recursive: true);
@@ -571,7 +562,7 @@ Future<(Uri? nativeAssetsYaml, List<Uri> dependencies)> buildNativeAssetsSingleA
   if (await hasNoPackageConfig(buildRunner) || await isDisabledAndNoNativeAssets(buildRunner)) {
     final Uri nativeAssetsYaml = await writeNativeAssetsYaml(
       <Asset>[],
-      yamlParentDirectory ?? buildUri_,
+      yamlParentDirectory ?? buildUri,
       fileSystem,
     );
     return (nativeAssetsYaml, <Uri>[]);
@@ -592,17 +583,17 @@ Future<(Uri? nativeAssetsYaml, List<Uri> dependencies)> buildNativeAssetsSingleA
   final Set<Uri> dependencies = result.dependencies.toSet();
   ensureNoLinkModeStatic(nativeAssets);
   globals.logger.printTrace('Building native assets for $target done.');
-  final Uri? absolutePath = flutterTester ? buildUri_ : null;
+  final Uri? absolutePath = flutterTester ? buildUri : null;
   final Map<Asset, Asset> assetTargetLocations = _assetTargetLocationsSingleArchitecture(nativeAssets, absolutePath);
   await _copyNativeAssetsSingleArchitecture(
-    buildUri_,
+    buildUri,
     assetTargetLocations,
     buildMode,
     fileSystem,
   );
   final Uri nativeAssetsUri = await writeNativeAssetsYaml(
     assetTargetLocations.values,
-    yamlParentDirectory ?? buildUri_,
+    yamlParentDirectory ?? buildUri,
     fileSystem,
   );
   return (nativeAssetsUri, dependencies.toList());

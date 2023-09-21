@@ -27,9 +27,9 @@ Future<Uri?> dryRunNativeAssetsMacOS({
     return null;
   }
 
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, OS.macOS);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, OS.macOS);
   final Iterable<Asset> nativeAssetPaths = await dryRunNativeAssetsMacOSInternal(fileSystem, projectUri, flutterTester, buildRunner);
-  final Uri nativeAssetsUri = await writeNativeAssetsYaml(nativeAssetPaths, buildUri_, fileSystem);
+  final Uri nativeAssetsUri = await writeNativeAssetsYaml(nativeAssetPaths, buildUri, fileSystem);
   return nativeAssetsUri;
 }
 
@@ -40,7 +40,7 @@ Future<Iterable<Asset>> dryRunNativeAssetsMacOSInternal(
   NativeAssetsBuildRunner buildRunner,
 ) async {
   const OS targetOS = OS.macOS;
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, targetOS);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, targetOS);
 
   globals.logger.printTrace('Dry running native assets for $targetOS.');
   final List<Asset> nativeAssets = (await buildRunner.dryRun(
@@ -52,7 +52,7 @@ Future<Iterable<Asset>> dryRunNativeAssetsMacOSInternal(
       .assets;
   ensureNoLinkModeStatic(nativeAssets);
   globals.logger.printTrace('Dry running native assets for $targetOS done.');
-  final Uri? absolutePath = flutterTester ? buildUri_ : null;
+  final Uri? absolutePath = flutterTester ? buildUri : null;
   final Map<Asset, Asset> assetTargetLocations = _assetTargetLocations(nativeAssets, absolutePath);
   final Iterable<Asset> nativeAssetPaths = assetTargetLocations.values;
   return nativeAssetPaths;
@@ -76,9 +76,9 @@ Future<(Uri? nativeAssetsYaml, List<Uri> dependencies)> buildNativeAssetsMacOS({
   required FileSystem fileSystem,
 }) async {
   const OS targetOS = OS.macOS;
-  final Uri buildUri_ = nativeAssetsBuildUri(projectUri, targetOS);
+  final Uri buildUri = nativeAssetsBuildUri(projectUri, targetOS);
   if (await hasNoPackageConfig(buildRunner) || await isDisabledAndNoNativeAssets(buildRunner)) {
-    final Uri nativeAssetsYaml = await writeNativeAssetsYaml(<Asset>[], yamlParentDirectory ?? buildUri_, fileSystem);
+    final Uri nativeAssetsYaml = await writeNativeAssetsYaml(<Asset>[], yamlParentDirectory ?? buildUri, fileSystem);
     return (nativeAssetsYaml, <Uri>[]);
   }
 
@@ -102,11 +102,11 @@ Future<(Uri? nativeAssetsYaml, List<Uri> dependencies)> buildNativeAssetsMacOS({
   }
   ensureNoLinkModeStatic(nativeAssets);
   globals.logger.printTrace('Building native assets for $targets done.');
-  final Uri? absolutePath = flutterTester ? buildUri_ : null;
+  final Uri? absolutePath = flutterTester ? buildUri : null;
   final Map<Asset, Asset> assetTargetLocations = _assetTargetLocations(nativeAssets, absolutePath);
   final Map<AssetPath, List<Asset>> fatAssetTargetLocations = _fatAssetTargetLocations(nativeAssets, absolutePath);
-  await copyNativeAssetsMacOSHost(buildUri_, fatAssetTargetLocations, codesignIdentity, buildMode, fileSystem);
-  final Uri nativeAssetsUri = await writeNativeAssetsYaml(assetTargetLocations.values, yamlParentDirectory ?? buildUri_, fileSystem);
+  await copyNativeAssetsMacOSHost(buildUri, fatAssetTargetLocations, codesignIdentity, buildMode, fileSystem);
+  final Uri nativeAssetsUri = await writeNativeAssetsYaml(assetTargetLocations.values, yamlParentDirectory ?? buildUri, fileSystem);
   return (nativeAssetsUri, dependencies.toList());
 }
 
