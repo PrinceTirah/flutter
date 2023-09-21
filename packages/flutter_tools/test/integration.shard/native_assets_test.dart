@@ -251,11 +251,11 @@ void main() {
           ],
           workingDirectory: exampleDirectory.path,
         );
-        expect(result.exitCode, isNot(0));
         expect(
           (result.stdout as String) + (result.stderr as String),
           contains('link mode set to static, but this is not yet supported'),
         );
+        expect(result.exitCode, isNot(0));
       });
     });
   }
