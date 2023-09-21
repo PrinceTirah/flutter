@@ -463,7 +463,7 @@ Future<Uri?> dryRunNativeAssetsMultipeOSes({
         fileSystem,
         projectUri,
         buildRunner,
-      ), 
+      ),
   ];
   final Uri nativeAssetsUri = await writeNativeAssetsYaml(nativeAssetPaths, buildUri, fileSystem);
   return nativeAssetsUri;
